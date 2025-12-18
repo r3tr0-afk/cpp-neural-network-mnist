@@ -54,11 +54,12 @@ int main(){
     cout << "total data size : " << data.size() << endl ;
     cout << "label : " << data[0].label << endl;
     cout << "pixel count :" << data[0].pixels.size() << endl;
-    //cout << "pixel values : " << endl;
-    //for (int i = 0; i < data[0].pixels.size(); i++)
-    //{
-    //    cout << data[0].pixels[i] << " ";
-    //} 
+    cout << "pixel values : " << endl;
+    for (int i = 0; i < data[0].pixels.size(); i++)
+    {
+        cout << data[0].pixels[i] << " ";
+    } 
+    cout << "\n";
     for (int i = 1; i < data.size(); i++)
     {
         if(data[i].pixels.size()!=data[i-1].pixels.size()){
