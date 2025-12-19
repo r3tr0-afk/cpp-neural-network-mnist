@@ -51,5 +51,13 @@ int main(){
     sub.printmat();
     cout << "\n";
 
+    matrix C(4,4);
+    matrix D(5,5);
+    C.random_number_fill();
+    D.random_number_fill();
+    C.printmat();
+    cout << "\n";
+    D.printmat();
+
     return 0;
 }

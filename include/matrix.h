@@ -5,6 +5,7 @@
 #include<vector>
 #include<stdexcept>
 #include<cmath>
+#include<cstdlib>
 
 //using namespace std;
 
@@ -106,5 +107,21 @@ class matrix{
                 std::cout << "\n";
             }  
         };
+
+        void random_number_fill(){
+            for (int i = 0; i < data.size(); i++)
+            {
+                data[i] = ((double)std::rand()/RAND_MAX)*2.0-1.0;
+            }
+        };
+
+        matrix sigmoid(){
+            matrix res(rows,cols);
+            for (int i = 0; i < data.size(); i++)
+            {
+                res.data[i] = 1.0 / (1.0 + std::exp(-1*data[i]));
+            }
+            return res;
+        };        
 };
 #endif
