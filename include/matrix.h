@@ -7,7 +7,7 @@
 #include<cmath>
 #include<cstdlib>
 
-//using namespace std;
+using namespace std;
 
 class matrix{
     private:
@@ -122,6 +122,37 @@ class matrix{
                 res.data[i] = 1.0 / (1.0 + std::exp(-1*data[i]));
             }
             return res;
-        };        
+        }; 
+        
+        matrix element_wise_multiply(matrix& other){
+            if(rows!=other.rows || cols!=other.cols)
+            {
+                throw std::invalid_argument("dimensions didnt match\n");
+            }
+            matrix res(rows,cols);
+            for (int i = 0; i < data.size(); i++)
+            {
+                res.data[i] = data[i]*other.data[i];
+            }
+            return res;
+        }
+
+        matrix sigmoid_derivative(){
+            matrix res(rows,cols);
+            for (int i = 0; i < data.size(); i++)
+            {
+                res.data[i] = data[i]*(1-data[i]);
+            }
+            return res;
+        }
+
+        matrix apply_learning_rate(double n){
+            matrix res(rows,cols);
+            for (int i = 0; i < data.size(); i++)
+            {
+                res.data[i] = n*data[i];
+            }
+            return res;
+        }
 };
 #endif
