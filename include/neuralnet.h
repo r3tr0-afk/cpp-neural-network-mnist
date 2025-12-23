@@ -5,6 +5,8 @@
 #include<vector>
 #include"matrix.h"
 #include<stdexcept>
+#include<string>
+#include<fstream>
 
 //using namespace std;
 
@@ -106,6 +108,98 @@ class neuralnet{
             matrix w_input_hidden_deltas = hidden_gradients.matmultiply(inputs_t);
             w_input_hidden = w_input_hidden.matadd(w_input_hidden_deltas);
             b_hidden = b_hidden.matadd(hidden_gradients);            
+            
+        }
+        
+        void save_model(std::string path){
+            std::ofstream file(path);
+            if (file.is_open()==0)
+            {
+                std::cout << "saving model - error while loading file\n";
+                return;
+            }
+            file << w_input_hidden.numrows() << " " << w_input_hidden.numcols() << "\n";
+            for (int i = 0; i < w_input_hidden.numrows(); i++)
+            {
+                for (int j = 0; j < w_input_hidden.numcols(); j++)
+                {
+                    file << w_input_hidden.atpos(i,j) << " ";
+                }
+                file << "\n";
+            }
+            file << b_hidden.numrows() << " " << b_hidden.numcols() << "\n";
+            for (int i = 0; i < b_hidden.numrows(); i++)
+            {
+                file << b_hidden.atpos(i,0) << "\n";
+            }
+            file << w_hidden_output.numrows() << " " << w_hidden_output.numcols() << "\n";
+            for (int i = 0; i < w_hidden_output.numrows(); i++)
+            {
+                for (int j = 0; j < w_hidden_output.numcols(); j++)
+                {
+                    file << w_hidden_output.atpos(i,j) << " ";
+                }
+                file << "\n";
+            }
+            file << b_output.numrows() << " " << b_output.numcols() << "\n";
+            for (int i = 0; i < b_output.numrows(); i++)
+            {
+                file << b_output.atpos(i,0) << "\n";
+            }
+
+            file.close();
+            std::cout << "model saved\n"; 
+        }
+
+        void load_model(std::string path){
+            std::ifstream file(path);
+            if(file.is_open()==0){
+                std::cout << "loading model - error while loading file \n";
+                return;
+            }
+            int rows;
+            int cols;
+            double val;
+
+            file >> rows >> cols;
+            if (rows!=hidden_neurons || cols!=input_neurons)
+            {
+                std::cout << "dimensions didnt match\n";
+                return;
+            }
+            for (int i = 0; i < rows; i++)
+            {
+                for (int j = 0; j < cols; j++)
+                {
+                    file >> val;
+                    w_input_hidden.atpos_modifiable(i,j)=val;
+                }
+                
+            }
+            file >> rows >> cols;
+            for (int i = 0; i < rows; i++)
+            {
+                file >> val;
+                b_hidden.atpos_modifiable(i,0)=val;
+            }
+            file >> rows >> cols;
+            for (int i = 0; i < rows; i++)
+            {
+                for (int j = 0; j < cols; j++)
+                {
+                    file >> val;
+                    w_hidden_output.atpos_modifiable(i,j)=val;
+                }
+
+            }            
+            file >> rows >> cols;
+            for (int i = 0; i < rows; i++)
+            {
+                file >> val;
+                b_output.atpos_modifiable(i,0)=val;
+            }            
+            file.close();
+            std::cout << "model loaded\n";
             
         }
 };

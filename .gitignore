@@ -1,3 +1,5 @@
-data/*
+data/archive.zip
+data/mnist_train.csv
+data/mnist_test.csv
 
 *.exe
