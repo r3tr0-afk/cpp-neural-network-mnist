@@ -1,13 +1,13 @@
 a fully connected neural network implemented from scratch in C++ to recognize handwritten digits
 
-dataset  -  **MNIST in CSV format**
-link     -  https://www.kaggle.com/datasets/oddrationale/mnist-in-csv
+- dataset  -  **MNIST in CSV format**
+- link     -  https://www.kaggle.com/datasets/oddrationale/mnist-in-csv
 
-src/main.cpp      - training 
-src/predict.cpp   - prediction
-models/           - already trained model weights
-include/          - math and the core logic behind network
-data/             - data
+- src/main.cpp      - training 
+- src/predict.cpp   - prediction
+- models/           - already trained model weights
+- include/          - math and the core logic behind network
+- data/             - data
 
 
 - saved models go into models/
