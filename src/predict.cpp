@@ -4,6 +4,7 @@
 #include<sstream>
 #include<string>
 #include<algorithm>
+#include<utility>
 #include"../include/neuralnet.h"
 
 //using namespace std;
@@ -46,7 +47,7 @@ std::vector<image> load_csv(const std::string& filename){
             sample.pixels.push_back(pixel);
         }
 
-        images.push_back(sample);
+        images.push_back(std::move(sample));
     }
     return images;    
 }

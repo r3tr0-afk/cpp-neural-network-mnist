@@ -6,8 +6,8 @@
 #include<stdexcept>
 #include<cmath>
 #include<cstdlib>
+#include<random>
 
-using namespace std;
 
 class matrix{
     private:
@@ -20,11 +20,11 @@ class matrix{
             data.resize(r*c,0.0);
         }
 
-        int numrows(){
+        int numrows() const {
             return rows;
         }
 
-        int numcols(){
+        int numcols() const {
             return cols;
         }
 
@@ -32,33 +32,36 @@ class matrix{
             return data[(r*cols)+c];
         };
         
-        double atpos(int r,int c){
+        double atpos(int r,int c) const {
             return data[(r*cols)+c];
         };
         
-        matrix matmultiply(matrix& other){
+        matrix matmultiply(const matrix& other) const {
             if(cols!=other.rows)
             {
                 throw std::invalid_argument("multiplication-dimensions didnt match\n");
             }
+                // transpose other so inner loop accesses memory contiguously
+                matrix otherT = other.mattranspose();
                 matrix res(rows, other.cols);
                 for (int i = 0; i < rows; i++)
                 {
+                    int row_a = i * cols;
                     for (int j = 0; j < other.cols; j++)
                     {
-                        double sum=0;
+                        double sum = 0.0;
+                        int row_bt = j * cols;  // row j of B^T = column j of B
                         for (int k = 0; k < cols; k++)
                         {
-                            sum += atpos(i,k) * other.atpos(k,j);
+                            sum += data[row_a + k] * otherT.data[row_bt + k];
                         }
-                        res.atpos_modifiable(i,j) = sum;
+                        res.data[i * other.cols + j] = sum;
                     }
-                
                 }
                 return res;
         };
 
-        matrix matadd(matrix& other){
+        matrix matadd(const matrix& other) const {
             if(rows!=other.rows || cols!=other.cols)
             {
                 throw std::invalid_argument("addition-dimensions didnt match\n");
@@ -71,7 +74,7 @@ class matrix{
                 return res;
         };
 
-        matrix matsubtract(matrix& other){
+        matrix matsubtract(const matrix& other) const {
             if(rows!=other.rows || cols!=other.cols)
             {
                 throw std::invalid_argument("subtraction-dimensions didnt match\n");
@@ -84,7 +87,7 @@ class matrix{
                 return res;
         };
 
-        matrix mattranspose(){
+        matrix mattranspose() const {
             matrix res(cols,rows);
             for (int i = 0; i < rows; i++)
             {
@@ -97,7 +100,7 @@ class matrix{
             return res;
         };
 
-        void printmat(){
+        void printmat() const {
             for (int i = 0; i < rows; i++)
             {
                 for (int j = 0; j < cols; j++)
@@ -109,22 +112,30 @@ class matrix{
         };
 
         void random_number_fill(){
+            static std::mt19937 rng(std::random_device{}());
+            std::uniform_real_distribution<double> dist(-1.0, 1.0);
             for (int i = 0; i < data.size(); i++)
             {
-                data[i] = ((double)std::rand()/RAND_MAX)*2.0-1.0;
+                data[i] = dist(rng);
             }
         };
 
-        matrix sigmoid(){
+        matrix sigmoid() const {
             matrix res(rows,cols);
             for (int i = 0; i < data.size(); i++)
             {
-                res.data[i] = 1.0 / (1.0 + std::exp(-1*data[i]));
+                double x = data[i];
+                if (x >= 0) {
+                    res.data[i] = 1.0 / (1.0 + std::exp(-x));
+                } else {
+                    double ex = std::exp(x);
+                    res.data[i] = ex / (1.0 + ex);
+                }
             }
             return res;
         }; 
         
-        matrix element_wise_multiply(matrix& other){
+        matrix element_wise_multiply(const matrix& other) const {
             if(rows!=other.rows || cols!=other.cols)
             {
                 throw std::invalid_argument("dimensions didnt match\n");
@@ -137,7 +148,7 @@ class matrix{
             return res;
         }
 
-        matrix sigmoid_derivative(){
+        matrix sigmoid_derivative() const {
             matrix res(rows,cols);
             for (int i = 0; i < data.size(); i++)
             {
@@ -146,7 +157,7 @@ class matrix{
             return res;
         }
 
-        matrix apply_learning_rate(double n){
+        matrix apply_learning_rate(double n) const {
             matrix res(rows,cols);
             for (int i = 0; i < data.size(); i++)
             {

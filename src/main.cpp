@@ -3,9 +3,9 @@
 #include <fstream>
 #include <sstream>
 #include <string>
-#include <cstdlib>
-#include <ctime>
-#include <algorithm> 
+#include <algorithm>
+#include <random>
+#include <utility>
 #include "../include/neuralnet.h"
 
 //using namespace std;
@@ -48,7 +48,7 @@ std::vector<image> load_csv(const std::string& filename){
             sample.pixels.push_back(pixel);
         }
 
-        images.push_back(sample);
+        images.push_back(std::move(sample));
     }
     return images;    
 }
@@ -84,7 +84,7 @@ double accuracy(neuralnet& network,const std::vector<image>& data){
 }
 
 int main() {
-    std::srand(std::time(0)); 
+    std::mt19937 rng(std::random_device{}());
 
     std::vector<image> training_data = load_csv("../data/mnist_train.csv");
     std::vector<image> test_data = load_csv("../data/mnist_test.csv");
@@ -110,7 +110,7 @@ int main() {
     for (int i = 0; i < epochs; i++)
     {
         std::cout << "epoch" << i+1 << "\n";
-        std::random_shuffle(training_data.begin(),training_data.end());
+        std::shuffle(training_data.begin(),training_data.end(),rng);
         for (int j = 0; j < training_data.size(); j++)
         {
             std::vector<double> targets = target_var(training_data[j].label);

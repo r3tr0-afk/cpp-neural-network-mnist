@@ -15,6 +15,7 @@ class neuralnet{
         int input_neurons;
         int hidden_neurons;
         int output_neurons;
+        double learning_rate;
 
         matrix w_input_hidden;
         matrix w_hidden_output;
@@ -22,10 +23,11 @@ class neuralnet{
         matrix b_output;
     
     public:
-        neuralnet(int input, int hidden, int output) :
+        neuralnet(int input, int hidden, int output, double lr = 0.1) :
             input_neurons(input),
             hidden_neurons(hidden),
             output_neurons(output),
+            learning_rate(lr),
             w_input_hidden(hidden,input),
             w_hidden_output(output,hidden),
             b_hidden(hidden,1),
@@ -37,7 +39,7 @@ class neuralnet{
                 b_output.random_number_fill();
             }
         
-        std::vector<double> forward(std::vector<double> input_data){
+        std::vector<double> forward(const std::vector<double>& input_data){
             if(input_data.size()!=input_neurons){
                 throw std::invalid_argument("input size didnt match with number of input neurons\n");
             }
@@ -57,6 +59,7 @@ class neuralnet{
             matrix final_outputs = final_with_bias.sigmoid();
 
             std::vector<double> output_data;
+            output_data.reserve(output_neurons);
             for (int i = 0; i < output_neurons; i++)
             {
                 output_data.push_back(final_outputs.atpos(i,0));
@@ -65,7 +68,7 @@ class neuralnet{
             return output_data;
         } 
         
-        void train(vector<double> input_data, vector<double> target_data){
+        void train(const std::vector<double>& input_data, const std::vector<double>& target_data){
             matrix inputs(input_neurons,1);
             for (int i = 0; i < input_neurons; i++)
             {
@@ -90,7 +93,7 @@ class neuralnet{
             matrix w_hidden_output_t = w_hidden_output.mattranspose();
             matrix e_hidden = w_hidden_output_t.matmultiply(e_output);
 
-            double learning_rate = 0.1;
+
             matrix output_gradients = final_outputs.sigmoid_derivative();
             output_gradients = output_gradients.element_wise_multiply(e_output);
             output_gradients = output_gradients.apply_learning_rate(learning_rate);
@@ -111,7 +114,7 @@ class neuralnet{
             
         }
         
-        void save_model(std::string path){
+        void save_model(const std::string& path){
             std::ofstream file(path);
             if (file.is_open()==0)
             {
@@ -151,7 +154,7 @@ class neuralnet{
             std::cout << "model saved\n"; 
         }
 
-        void load_model(std::string path){
+        void load_model(const std::string& path){
             std::ifstream file(path);
             if(file.is_open()==0){
                 std::cout << "loading model - error while loading file \n";
