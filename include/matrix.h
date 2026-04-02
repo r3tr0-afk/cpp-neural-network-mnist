@@ -41,6 +41,20 @@ class matrix{
             {
                 throw std::invalid_argument("multiplication-dimensions didnt match\n");
             }
+            
+            if (other.cols == 1) {
+                matrix res(rows, 1);
+                for (int i = 0; i < rows; i++) {
+                    double sum = 0.0;
+                    int row_a = i * cols;
+                    for (int k = 0; k < cols; k++) {
+                        sum += data[row_a + k] * other.data[k];
+                    }
+                    res.data[i] = sum;
+                }
+                return res;
+            }
+
                 // transpose other so inner loop accesses memory contiguously
                 matrix otherT = other.mattranspose();
                 matrix res(rows, other.cols);
@@ -164,6 +178,66 @@ class matrix{
                 res.data[i] = n*data[i];
             }
             return res;
+        }
+
+        static matrix outer_product(const matrix& a, const matrix& b) {
+            if (a.cols != 1 || b.cols != 1) throw std::invalid_argument("outer_product requires column vectors");
+            matrix res(a.rows, b.rows);
+            for (int i = 0; i < a.rows; i++) {
+                double val_a = a.data[i];
+                int row_res = i * b.rows;
+                for (int j = 0; j < b.rows; j++) {
+                    res.data[row_res + j] = val_a * b.data[j];
+                }
+            }
+            return res;
+        }
+
+        matrix transpose_matmultiply_vec(const matrix& vec) const {
+            if (rows != vec.rows || vec.cols != 1) throw std::invalid_argument("dimension mismatch");
+            matrix res(cols, 1);
+            for (int i = 0; i < cols; i++) {
+                double sum = 0.0;
+                for (int k = 0; k < rows; k++) {
+                    sum += data[k * cols + i] * vec.data[k];
+                }
+                res.data[i] = sum;
+            }
+            return res;
+        }
+
+        void add_inplace(const matrix& other) {
+            for (size_t i = 0; i < data.size(); i++) data[i] += other.data[i];
+        }
+
+        void subtract_inplace(const matrix& other) {
+            for (size_t i = 0; i < data.size(); i++) data[i] -= other.data[i];
+        }
+
+        void sigmoid_inplace() {
+            for (size_t i = 0; i < data.size(); i++) {
+                double x = data[i];
+                if (x >= 0) {
+                    data[i] = 1.0 / (1.0 + std::exp(-x));
+                } else {
+                    double ex = std::exp(x);
+                    data[i] = ex / (1.0 + ex);
+                }
+            }
+        }
+
+        void sigmoid_derivative_inplace() {
+            for (size_t i = 0; i < data.size(); i++) {
+                data[i] = data[i] * (1.0 - data[i]);
+            }
+        }
+
+        void element_wise_multiply_inplace(const matrix& other) {
+            for (size_t i = 0; i < data.size(); i++) data[i] *= other.data[i];
+        }
+
+        void apply_learning_rate_inplace(double n) {
+            for (size_t i = 0; i < data.size(); i++) data[i] *= n;
         }
 };
 #endif

@@ -50,19 +50,19 @@ class neuralnet{
                 inputs.atpos_modifiable(i,0) = input_data[i];
             }
 
-            matrix hidden_inputs = w_input_hidden.matmultiply(inputs);
-            matrix hidden_with_bias = hidden_inputs.matadd(b_hidden);
-            matrix hidden_outputs = hidden_with_bias.sigmoid();
+            matrix hidden = w_input_hidden.matmultiply(inputs);
+            hidden.add_inplace(b_hidden);
+            hidden.sigmoid_inplace();
 
-            matrix final_inputs = w_hidden_output.matmultiply(hidden_outputs);
-            matrix final_with_bias = final_inputs.matadd(b_output);
-            matrix final_outputs = final_with_bias.sigmoid();
+            matrix final_out = w_hidden_output.matmultiply(hidden);
+            final_out.add_inplace(b_output);
+            final_out.sigmoid_inplace();
 
             std::vector<double> output_data;
             output_data.reserve(output_neurons);
             for (int i = 0; i < output_neurons; i++)
             {
-                output_data.push_back(final_outputs.atpos(i,0));
+                output_data.push_back(final_out.atpos(i,0));
             }
             
             return output_data;
@@ -75,43 +75,39 @@ class neuralnet{
                 inputs.atpos_modifiable(i,0) = input_data[i];
             }
 
-            matrix hidden_inputs = w_input_hidden.matmultiply(inputs);
-            matrix hidden_with_bias = hidden_inputs.matadd(b_hidden);
-            matrix hidden_outputs = hidden_with_bias.sigmoid();
+            matrix hidden = w_input_hidden.matmultiply(inputs);
+            hidden.add_inplace(b_hidden);
+            hidden.sigmoid_inplace();
 
-            matrix final_inputs = w_hidden_output.matmultiply(hidden_outputs);
-            matrix final_with_bias = final_inputs.matadd(b_output);
-            matrix final_outputs = final_with_bias.sigmoid();
+            matrix final_out = w_hidden_output.matmultiply(hidden);
+            final_out.add_inplace(b_output);
+            final_out.sigmoid_inplace();
 
-            matrix targets(output_neurons,1);
+            matrix e_output(output_neurons,1);
             for (int i = 0; i < output_neurons; i++)
             {
-                targets.atpos_modifiable(i,0) = target_data[i];
+                e_output.atpos_modifiable(i,0) = target_data[i] - final_out.atpos(i,0);
             }
 
-            matrix e_output = targets.matsubtract(final_outputs);
-            matrix w_hidden_output_t = w_hidden_output.mattranspose();
-            matrix e_hidden = w_hidden_output_t.matmultiply(e_output);
+            matrix e_hidden = w_hidden_output.transpose_matmultiply_vec(e_output);
 
+            matrix output_gradients = final_out;
+            output_gradients.sigmoid_derivative_inplace();
+            output_gradients.element_wise_multiply_inplace(e_output);
+            output_gradients.apply_learning_rate_inplace(learning_rate);
 
-            matrix output_gradients = final_outputs.sigmoid_derivative();
-            output_gradients = output_gradients.element_wise_multiply(e_output);
-            output_gradients = output_gradients.apply_learning_rate(learning_rate);
+            matrix hidden_gradients = hidden;
+            hidden_gradients.sigmoid_derivative_inplace();
+            hidden_gradients.element_wise_multiply_inplace(e_hidden);
+            hidden_gradients.apply_learning_rate_inplace(learning_rate);
 
-            matrix hidden_gradients = hidden_outputs.sigmoid_derivative();
-            hidden_gradients = hidden_gradients.element_wise_multiply(e_hidden);
-            hidden_gradients = hidden_gradients.apply_learning_rate(learning_rate);
+            matrix w_hidden_output_deltas = matrix::outer_product(output_gradients, hidden);
+            w_hidden_output.add_inplace(w_hidden_output_deltas);
+            b_output.add_inplace(output_gradients);
 
-            matrix hidden_outputs_t = hidden_outputs.mattranspose();
-            matrix w_hidden_output_deltas = output_gradients.matmultiply(hidden_outputs_t);
-            w_hidden_output = w_hidden_output.matadd(w_hidden_output_deltas);
-            b_output = b_output.matadd(output_gradients);
-
-            matrix inputs_t = inputs.mattranspose();
-            matrix w_input_hidden_deltas = hidden_gradients.matmultiply(inputs_t);
-            w_input_hidden = w_input_hidden.matadd(w_input_hidden_deltas);
-            b_hidden = b_hidden.matadd(hidden_gradients);            
-            
+            matrix w_input_hidden_deltas = matrix::outer_product(hidden_gradients, inputs);
+            w_input_hidden.add_inplace(w_input_hidden_deltas);
+            b_hidden.add_inplace(hidden_gradients);            
         }
         
         void save_model(const std::string& path){
