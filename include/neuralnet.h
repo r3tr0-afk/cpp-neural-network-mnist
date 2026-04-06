@@ -33,10 +33,14 @@ class neuralnet{
             b_hidden(hidden,1),
             b_output(output,1){
 
-                w_input_hidden.random_number_fill();
-                w_hidden_output.random_number_fill();
-                b_hidden.random_number_fill();
-                b_output.random_number_fill();
+                double limit1 = std::sqrt(6.0 / (input + hidden));
+                w_input_hidden.random_number_fill(-limit1, limit1);
+
+                double limit2 = std::sqrt(6.0 / (hidden + output));
+                w_hidden_output.random_number_fill(-limit2, limit2);
+
+                b_hidden.random_number_fill(0.0, 0.0);
+                b_output.random_number_fill(0.0, 0.0);
             }
         
         std::vector<double> forward(const std::vector<double>& input_data){
@@ -56,7 +60,7 @@ class neuralnet{
 
             matrix final_out = w_hidden_output.matmultiply(hidden);
             final_out.add_inplace(b_output);
-            final_out.sigmoid_inplace();
+            final_out.softmax_inplace();
 
             std::vector<double> output_data;
             output_data.reserve(output_neurons);
@@ -81,7 +85,7 @@ class neuralnet{
 
             matrix final_out = w_hidden_output.matmultiply(hidden);
             final_out.add_inplace(b_output);
-            final_out.sigmoid_inplace();
+            final_out.softmax_inplace();
 
             matrix e_output(output_neurons,1);
             for (int i = 0; i < output_neurons; i++)
@@ -91,9 +95,7 @@ class neuralnet{
 
             matrix e_hidden = w_hidden_output.transpose_matmultiply_vec(e_output);
 
-            matrix output_gradients = final_out;
-            output_gradients.sigmoid_derivative_inplace();
-            output_gradients.element_wise_multiply_inplace(e_output);
+            matrix output_gradients = e_output;
             output_gradients.apply_learning_rate_inplace(learning_rate);
 
             matrix hidden_gradients = hidden;

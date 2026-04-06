@@ -125,9 +125,9 @@ class matrix{
             }  
         };
 
-        void random_number_fill(){
+        void random_number_fill(double min = -1.0, double max = 1.0){
             static std::mt19937 rng(std::random_device{}());
-            std::uniform_real_distribution<double> dist(-1.0, 1.0);
+            std::uniform_real_distribution<double> dist(min, max);
             for (int i = 0; i < data.size(); i++)
             {
                 data[i] = dist(rng);
@@ -148,6 +148,24 @@ class matrix{
             }
             return res;
         }; 
+
+        matrix softmax() const {
+            matrix res(rows, cols);
+            if (data.empty()) return res;
+            double max_val = data[0];
+            for (int i = 1; i < data.size(); i++) {
+                if (data[i] > max_val) max_val = data[i];
+            }
+            double sum = 0.0;
+            for (int i = 0; i < data.size(); i++) {
+                res.data[i] = std::exp(data[i] - max_val);
+                sum += res.data[i];
+            }
+            for (int i = 0; i < data.size(); i++) {
+                res.data[i] /= sum;
+            }
+            return res;
+        };
         
         matrix element_wise_multiply(const matrix& other) const {
             if(rows!=other.rows || cols!=other.cols)
@@ -223,6 +241,22 @@ class matrix{
                     double ex = std::exp(x);
                     data[i] = ex / (1.0 + ex);
                 }
+            }
+        }
+
+        void softmax_inplace() {
+            if (data.empty()) return;
+            double max_val = data[0];
+            for (size_t i = 1; i < data.size(); i++) {
+                if (data[i] > max_val) max_val = data[i];
+            }
+            double sum = 0.0;
+            for (size_t i = 0; i < data.size(); i++) {
+                data[i] = std::exp(data[i] - max_val);
+                sum += data[i];
+            }
+            for (size_t i = 0; i < data.size(); i++) {
+                data[i] /= sum;
             }
         }
 
